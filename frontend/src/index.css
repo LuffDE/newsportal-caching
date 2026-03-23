@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap') layer(utilities);
+
+@import 'tailwindcss' layer(base);
+@import 'tailwindcss/preflight' layer(utilities);
+@import 'tailwindcss/utilities' layer(utilities);
+@import 'swiper/swiper-bundle.css' layer(utilities);
+
+header nav img {
+    height: 70px;
+    margin: 10px;
+}
+
+main {
+    margin-top: 5rem;
+}

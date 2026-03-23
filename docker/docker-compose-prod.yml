@@ -1,0 +1,104 @@
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: docker/app/Dockerfile-PROD
+      args:
+        BUILD_ARG_ENV: prod
+        HOST_UID: ${HOST_UID}
+        HOST_GID: ${HOST_GID}
+    container_name: news_portal
+    environment:
+      MYSQL_ROOT_PW: ${MYSQL_ROOT_PW}
+      MYSQL_DATABASE_NAME: ${MYSQL_DATABASE_NAME}
+      MYSQL_USER_NAME: ${MYSQL_USER_NAME}
+      MYSQL_USER_PW: ${MYSQL_USER_PW}
+    ports:
+      - "${WEB_PORT_HTTP}:80"
+      - "${WEB_PORT_SSL}:443"
+    volumes:
+      - media_data:/var/www/html/public/media
+    #    command: sh -c "find /var/www/html -type d -exec chmod 777 {} \\; && find /var/www/html -type f -exec chmod 777 {} \\; && apache2-foreground"
+    depends_on:
+      - database
+      - redis
+    networks:
+      - net-newsPortal
+
+  frontend:
+    build:
+      context: ../
+      dockerfile: docker/frontend/Dockerfile
+    container_name: news_portal_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    #    volumes:
+    #      - ../frontend/.:/usr/share/nginx/html:cached
+    depends_on:
+      - app
+    networks:
+      - net-newsPortal
+
+  database:
+    image: mariadb:10.11.4
+    container_name: news_portal_db
+    command: --innodb-use-native-aio=${INNODB_USE_NATIVE_AIO:-1} --sql_mode=${SQL_MODE:-"ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PW}
+      MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}
+      MYSQL_USER: ${MYSQL_USER_NAME}
+      MYSQL_PASSWORD: ${MYSQL_USER_PW}
+    ports:
+      - "3306:3306"
+    volumes:
+      - news_data:/var/lib/mysql:delegated
+    networks:
+      - net-newsPortal
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: news_portal_pma
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: database
+      PMA_USER: ${MYSQL_USER_NAME}
+      PMA_PASSWORD: ${MYSQL_USER_PW}
+    networks:
+      - net-newsPortal
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - net-newsPortal
+
+  varnish:
+    image: varnish:7.4
+    container_name: varnish
+    ports:
+      - "8081:80"   # Extern erreichbar über http://localhost:8080
+    volumes:
+      - ./varnish/default.vcl:/etc/varnish/default.vcl:ro
+    environment:
+      - VARNISH_SIZE=256M
+    depends_on:
+      - frontend
+      - app
+    networks:
+      - net-newsPortal
+
+volumes:
+  news_data:
+  media_data:
+  redis_data:
+    driver: local
+
+networks:
+  net-newsPortal:
+    driver: bridge
