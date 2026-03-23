@@ -1,0 +1,38 @@
+# https://json-generator.com
+
+[
+  '{{repeat(50)}}',
+  {
+    storyType: '{{random("news", "article", "video", "audio")}}',
+    headline: '{{lorem(1, "paragraphs")}}',
+    kicker: '{{lorem(2, "paragraphs")}}',
+    summary: '{{lorem(2, "paragraphs")}}',
+    paidContent: '{{bool()}}',
+    publishingDate: '{{date(new Date(2014, 0, 1), new Date(), "YYYY-MM-ddThh:mm:ss Z")}}',
+    modificationDate: '{{date(new Date(2014, 0, 1), new Date(), "YYYY-MM-ddThh:mm:ss Z")}}',
+    author: '{{firstName()}} {{surname()}}',
+    articleSource: '{{company().toUpperCase()}}',
+    storyLine: [
+      '{{repeat(5,30)}}',
+      {
+        type: '{{random("IMAGE", "PARAGRAPH", "HEADING", "QUOTE")}}',
+        content: '{{lorem(2, "paragraphs")}}'
+      }
+    ],
+    tags: [
+      '{{repeat(1, 5)}}',
+      {
+        name: '{{lorem(1, "words")}}',
+        weight: '{{floating(0.000001, 1)}}',
+        type: '{{random("news", "event")}}'
+      }
+    ],
+    category: [
+      '{{repeat(1, )}}',
+      {
+        name: '{{lorem(1, "words")}}',
+        url: '{{lorem(1, "words")}}'
+      }
+    ]
+  }
+]
